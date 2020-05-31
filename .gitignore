@@ -1,0 +1,11 @@
+.idea
+.idea/*
+dist/*
+*/.pytest_cache/*
+.coverage
+.DS_Store
+*__pycache__*
+*/arns.py
+*/.requirements.zip
+*/node_modules
+*/.serverless
