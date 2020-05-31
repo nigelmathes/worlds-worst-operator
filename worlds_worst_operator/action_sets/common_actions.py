@@ -4,7 +4,7 @@ from dataclasses import fields
 from typing import Dict, Tuple, List
 
 import boto3
-from fuzzywuzzy import process
+from rapidfuzz import process
 
 try:
     from database_ops import get_player

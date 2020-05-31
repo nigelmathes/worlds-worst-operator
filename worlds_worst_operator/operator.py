@@ -11,7 +11,7 @@ from dataclasses import asdict
 from typing import Dict, Any, Callable, Tuple
 
 import boto3
-from fuzzywuzzy import process
+from rapidfuzz import process
 
 try:
     from database_ops import create_player, update_player, verify_player
