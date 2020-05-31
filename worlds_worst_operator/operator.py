@@ -126,11 +126,11 @@ def build_actions_map(context: str) -> Dict:
     """
     combined_actions_map = COMMON_ACTIONS_MAP
 
-    if context == 'home':
+    if context == "home":
         combined_actions_map.update(HOME_ACTIONS_MAP)
-    if context == 'combat':
+    if context == "combat":
         combined_actions_map.update(COMBAT_ACTIONS_MAP)
-    if context == 'text_adventure':
+    if context == "text_adventure":
         # Remove the common actions so they don't clash with the
         # commands in the text adventure, leaving only "default.
         # This is now a pass-through to the text adventure game engine

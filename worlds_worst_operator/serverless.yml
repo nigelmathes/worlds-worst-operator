@@ -43,7 +43,8 @@ custom:
 package:
   exclude:
     - node_modules/**
-    - venv/**
+    - tests/**
+    - action_sets/tests/**
 
 resources: # CloudFormation template syntax from here on.
   Resources:

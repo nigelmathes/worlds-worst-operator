@@ -55,7 +55,7 @@ def play_game(player: Player, table: dynamodb.Table) -> ActionResponse:
     response = lambda_client.invoke(
         FunctionName=TEXT_ADVENTURE_ARN,
         InvocationType="RequestResponse",
-        Payload=payload
+        Payload=payload,
     )
     # response of the form:
     # {

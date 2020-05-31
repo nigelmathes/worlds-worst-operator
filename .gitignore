@@ -9,3 +9,4 @@ dist/*
 */.requirements.zip
 */node_modules
 */.serverless
+.venv

@@ -64,9 +64,11 @@ def play_text_adventure(player: Player, table: dynamodb.Table) -> ActionResponse
 
     if matched_game:
         game_name = Path(matched_game).stem
-        message = [f"You found {game_name}! You initialize the program and begin "
-                   f"playing. What is your first command? Look is normally a good start. "
-                   f"If you want to stop playing {game_name}, type the word quit"]
+        message = [
+            f"You found {game_name}! You initialize the program and begin "
+            f"playing. What is your first command? Look is normally a good start. "
+            f"If you want to stop playing {game_name}, type the word quit"
+        ]
 
         updated_player.context = "text_adventure"
         updated_player.target = game_name
@@ -76,8 +78,10 @@ def play_text_adventure(player: Player, table: dynamodb.Table) -> ActionResponse
         return player, player, player_updates, player_updates, message
 
     else:
-        message = [f"Could not find {player.action}...Are you sure you typed that "
-                   f"correctly? Here's the game list: {_get_games_list()}"]
+        message = [
+            f"Could not find {player.action}...Are you sure you typed that "
+            f"correctly? Here's the game list: {_get_games_list()}"
+        ]
 
         return player, player, {}, {}, message
 

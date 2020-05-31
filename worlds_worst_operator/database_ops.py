@@ -51,7 +51,7 @@ def get_player(table: dynamodb.Table, player_token: str) -> Dict:
             item = response["Item"]
 
             # Remove the player ID from the response so it doesn't get passed around
-            del (item["playerId"])
+            del item["playerId"]
 
             print("Retrieved Player Info.")
             return json.loads(json.dumps(item, indent=4, cls=DecimalEncoder))

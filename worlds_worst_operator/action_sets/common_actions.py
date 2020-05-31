@@ -106,7 +106,7 @@ def change_class_message(player: Player, table: dynamodb.Table) -> ActionRespons
         "You may choose from:",
         "Dreamer, Cloistered, Chosen, Chemist, Creator,"
         " Hacker, Architect, or Photonic",
-        "Enter that choice now."
+        "Enter that choice now.",
     ]
 
     return player, player, {}, {}, message
@@ -121,16 +121,16 @@ def get_player_info(player: Player, table: dynamodb.Table) -> ActionResponse:
 
     :return: Unchanged Player dataclass with no updates and no message
     """
-    if player.character_class[0] in ('a', 'e', 'i', 'o', 'u'):
-        article = 'an'
+    if player.character_class[0] in ("a", "e", "i", "o", "u"):
+        article = "an"
     else:
-        article = 'a'
+        article = "a"
 
     message = [
         f"You are {player.name}, {article} {player.character_class}",
         f"You have {player.hit_points} HP and {player.ex} EX",
         f"Your status effects are {player.status_effects}",
-        f"You are currently {player.context}. What would you like to do?"
+        f"You are currently {player.context}. What would you like to do?",
     ]
     return player, player, {}, {}, message
 
