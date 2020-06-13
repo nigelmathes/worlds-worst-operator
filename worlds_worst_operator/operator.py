@@ -11,7 +11,7 @@ from dataclasses import asdict
 from typing import Dict, Any, Callable, Tuple
 
 import boto3
-from fuzzywuzzy import process
+from rapidfuzz import process
 
 try:
     from database_ops import create_player, update_player, verify_player
@@ -35,7 +35,7 @@ LambdaDict = Dict[str, Any]
 
 def route_tasks_and_response(event: LambdaDict, context: LambdaDict) -> LambdaDict:
     """
-    Function to take auth credentials from the frontend and update the
+    Take auth credentials from the frontend and update the
     JWT associated with a player's character in dynamodb
 
     :param event: Input AWS Lambda event dict
@@ -117,7 +117,7 @@ def route_tasks_and_response(event: LambdaDict, context: LambdaDict) -> LambdaDi
 
 def build_actions_map(context: str) -> Dict:
     """
-    Function to use the context passed to determine which actions dicts should be
+    Use the context passed to determine which actions dicts should be
     combined to use for routing
 
     :param context: String containing the context of the player
@@ -132,7 +132,7 @@ def build_actions_map(context: str) -> Dict:
         combined_actions_map.update(COMBAT_ACTIONS_MAP)
     if context == "text_adventure":
         # Remove the common actions so they don't clash with the
-        # commands in the text adventure, leaving only "default.
+        # commands in the text adventure, leaving only default.
         # This is now a pass-through to the text adventure game engine
         for key in combined_actions_map:
             del combined_actions_map[key]
@@ -143,12 +143,12 @@ def build_actions_map(context: str) -> Dict:
 
 def route_action(action: str, actions_map: dict) -> Tuple[str, Callable]:
     """
-    Function to take in an action and route the command to the appropriate functions
+    Take in an action and route the command to the appropriate functions
 
     :param action: String action to take
     :param actions_map: Dictionary of possible actions
 
-    :return: List of functions to call, in order, to complete the action
+    :return: String name of action to call, and the function itself
     """
     if action in actions_map:
         # Perfect match
@@ -156,36 +156,10 @@ def route_action(action: str, actions_map: dict) -> Tuple[str, Callable]:
     else:
         # Fuzzy match
         possible_actions = actions_map.keys()
-        matched_action = process.extractOne(action, possible_actions)[0]
+        matched_action, confidence = process.extractOne(action, possible_actions)
 
-        return matched_action, actions_map[matched_action]
-
-
-def reset_characters(table: dynamodb.Table) -> Dict:
-    """
-    Function to reset the characters in table
-
-    :param table: DynamoDB table object
-    :return: Response to return
-    """
-    with open(
-        Path(__file__).resolve().parent / "default_players.json", "r"
-    ) as default_file:
-        default_characters = json.load(default_file)
-
-    message = list()
-    for default_character in default_characters:
-        player = Player(**default_character)
-        create_player(table=table, player=player)
-        message.append(f"Reset {player.name}")
-
-    # Return the results
-    action_results = json.dumps({"Player": asdict(player), "message": message})
-
-    result = {
-        "statusCode": 200,
-        "body": action_results,
-        "headers": {"Access-Control-Allow-Origin": "*"},
-    }
-
-    return result
+        # If the fuzzy match is really uncertain, ask player to clarify
+        if confidence < 60:
+            return "unknown action", unknown_action
+        else:
+            return matched_action, actions_map[matched_action]

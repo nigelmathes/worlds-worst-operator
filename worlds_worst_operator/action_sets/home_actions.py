@@ -1,3 +1,5 @@
+import json
+
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Tuple, List
@@ -6,9 +8,11 @@ import boto3
 
 try:
     from player_data import Player
+    from database_ops import get_player
     from action_sets.common_actions import create_update_fields
 except ImportError:
     from ..player_data import Player
+    from ..database_ops import get_player
     from ..action_sets.common_actions import create_update_fields
 
 
@@ -86,6 +90,49 @@ def play_text_adventure(player: Player, table: dynamodb.Table) -> ActionResponse
         return player, player, {}, {}, message
 
 
+def start_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
+    """
+    Begins combat with a target entity fetched from the database or created
+
+    :param player: The original player, before actions were taken
+    :param table: DynamoDB table object
+
+    :return: Changes player.context to "combat" and assigns player.target
+    """
+    message = []
+    if player.context == "home":
+        message.append("Starting shit in your own home? Sounds good to me."
+                       " Getting you a target to fight.")
+
+    # Get target from the database
+    target_token = "target_hash"
+    target_query = get_player(table=table, player_token=target_token)
+    if "player_data" in target_query:
+        # Deal with string vs. list
+        if type(target_query["player_data"]["status_effects"]) != list:
+            target_query["player_data"]["status_effects"] = json.loads(
+                target_query["player_data"]["status_effects"]
+            )
+        target = Player(**target_query["player_data"])
+    else:
+        # Return a 401 error if the id does not match an id in the database
+        # User is not authorized
+        message = ["ERROR. This is embarrassing. Could not find opponent in database."]
+        return player, player, {}, {}, message
+
+    player_updates = {}
+    player_updates["context"] = "combat"
+    player_updates["target"] = target_token
+
+    target_updates = {}
+    target_updates["context"] = "combat"
+    target_updates["target"] = player.name
+
+    message.append(f"You're in combat with {target.name}!")
+
+    return player, target, player_updates, target_updates, message
+
+
 HOME_ACTIONS_MAP = {
     "play a game": which_game,
     "play text adventure": which_game,
@@ -146,6 +193,13 @@ HOME_ACTIONS_MAP = {
     "zork2": play_text_adventure,
     "zork3": play_text_adventure,
     "ztuu": play_text_adventure,
+    "attack": start_combat,
+    "block": start_combat,
+    "dodge": start_combat,
+    "disrupt": start_combat,
+    "area": start_combat,
+    "fight": start_combat,
+    "combat": start_combat
 }
 
 GAMES_LIST = [

@@ -33,7 +33,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def get_player(table: dynamodb.Table, player_token: str) -> Dict:
     """
-    Function to get player information from DynamoDB
+    Get player information from DynamoDB
 
     :param table: DynamoDB table object
     :param player_token: Player ID token linking player to database entry
@@ -61,7 +61,7 @@ def get_player(table: dynamodb.Table, player_token: str) -> Dict:
 
 def create_player(table: dynamodb.Table, player: Player) -> Dict:
     """
-    Function to create a new player and save to DynamoDB
+    Create a new player and save to DynamoDB
 
     :param table: DynamoDB table object
     :param player: Player information to put into the database
@@ -79,7 +79,7 @@ def create_player(table: dynamodb.Table, player: Player) -> Dict:
 
 def update_player(table: dynamodb.Table, player_token: str, update_map: Dict) -> Dict:
     """
-    Function to update player information in DynamoDB
+    Update player information in DynamoDB
 
     :param table: DynamoDB table object
     :param player_token: Player ID token linking player to database entry

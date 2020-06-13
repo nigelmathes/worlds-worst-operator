@@ -4,7 +4,7 @@ from dataclasses import fields
 from typing import Dict, Tuple, List
 
 import boto3
-from fuzzywuzzy import process
+from rapidfuzz import process
 
 try:
     from database_ops import get_player
@@ -20,7 +20,7 @@ ActionResponse = Tuple[Player, Player, Dict, Dict, List]
 
 def unknown_action(player: Player, target: Player) -> ActionResponse:
     """
-    Function to do nothing because the action could not be resolved.
+    Do nothing because the action could not be resolved.
     In the message list, returns a message saying the action was bad.
 
     :return: Original inputs matching updated inputs, and a message
@@ -31,29 +31,13 @@ def unknown_action(player: Player, target: Player) -> ActionResponse:
 
 def change_class(player: Player, table: dynamodb.Table) -> ActionResponse:
     """
-    Function to change a player's class
+    Change a player's class
 
     :param player: The original player, before actions were taken
     :param table: DynamoDB table object (unused)
 
     :return: Updated Player dataclass and dict of fields to update, and a message
     """
-    # Get target from the database
-    target_token = "target_hash"
-    target_query = get_player(table=table, player_token=target_token)
-    if "player_data" in target_query:
-        # Deal with string vs. list
-        if type(target_query["player_data"]["status_effects"]) != list:
-            target_query["player_data"]["status_effects"] = json.loads(
-                target_query["player_data"]["status_effects"]
-            )
-        target = Player(**target_query["player_data"])
-    else:
-        # Return a 401 error if the id does not match an id in the database
-        # User is not authorized
-        message = ["ERROR. This is embarrassing. Could not find opponent in database."]
-        return player, player, {}, {}, message
-
     possible_classes = [
         "dreamer",
         "cloistered",
@@ -73,28 +57,24 @@ def change_class(player: Player, table: dynamodb.Table) -> ActionResponse:
         matched_class = process.extractOne(player.action, possible_classes)[0]
 
     player_updates = {}
-    target_updates = {}
 
     # Reset player and target HP to restart combat
     player_updates["character_class"] = matched_class
     player_updates["hit_points"] = player.max_hit_points
     player_updates["ex"] = 0
     player_updates["status_effects"] = list()
-    target_updates["hit_points"] = target.max_hit_points
-    target_updates["ex"] = 0
-    target_updates["status_effects"] = list()
 
     message = [
         f"Changing class from {player.character_class} to" f" {matched_class}.",
         "Resetting HP, EX and status for player and target.",
     ]
 
-    return player, target, player_updates, target_updates, message
+    return player, player, player_updates, player_updates, message
 
 
 def change_class_message(player: Player, table: dynamodb.Table) -> ActionResponse:
     """
-    Function to produce message response to 2-step change character
+    Produce message response to 2-step change character
 
     :param player: The original player, before actions were taken
     :param table: DynamoDB table object (unused)
@@ -114,7 +94,7 @@ def change_class_message(player: Player, table: dynamodb.Table) -> ActionRespons
 
 def get_player_info(player: Player, table: dynamodb.Table) -> ActionResponse:
     """
-    Function to return all information about a Player
+    Return all information about a Player
 
     :param player: The original player, before actions were taken
     :param table: DynamoDB table object
@@ -137,7 +117,7 @@ def get_player_info(player: Player, table: dynamodb.Table) -> ActionResponse:
 
 def create_update_fields(player: Player, updated_player: Player) -> Dict:
     """
-    Function to diff two Player entries and output the dictionary mapping
+    Diff two Player entries and output the dictionary mapping
     what fields to update to what value.
 
     :param player: The original player, before actions were taken
@@ -181,5 +161,5 @@ COMMON_ACTIONS_MAP = {
     "get player info": get_player_info,
     "status": get_player_info,
     "my status": get_player_info,
-    "my information": get_player_info,
+    "my information": get_player_info
 }

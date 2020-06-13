@@ -1,3 +1,2 @@
 boto3
-fuzzywuzzy
-python-Levenshtein
+rapidfuzz

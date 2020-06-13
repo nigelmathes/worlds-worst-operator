@@ -25,15 +25,14 @@ ActionResponse = Tuple[Player, Player, Dict, Dict, List]
 
 def do_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
     """
-    Function to do combat based on a Player
+    Do combat based on a Player and that Player's target
 
     :param player: Dataclass holding player data
     :param table: DynamoDB table object
     :return: Updated Player dataclass and dict of fields to update, and a message
     """
     # Get target from the database
-    target_token = "target_hash"
-    target_query = get_player(table=table, player_token=target_token)
+    target_query = get_player(table=table, player_token=player.target)
     if "player_data" in target_query:
         # Deal with string vs. list
         if type(target_query["player_data"]["status_effects"]) != list:
@@ -76,17 +75,25 @@ def do_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
 
     if updated_player.hit_points <= 0:
         message.append(f"{player.name} died! Rezzing. Die less you scrub.")
+        # Reset player and set context to home
         player_updates["hit_points"] = player.max_hit_points
         player_updates["ex"] = 0
         player_updates["status_effects"] = list()
+        player_updates["context"] = "home"
+
+        # Reset target
         target_updates["hit_points"] = target.max_hit_points
         target_updates["ex"] = 0
         target_updates["status_effects"] = list()
     elif updated_target.hit_points <= 0:
         message.append(f"{target.name} died! Rezzing. Great job winning.")
+        # Reset player and set context to home
         player_updates["hit_points"] = player.max_hit_points
         player_updates["ex"] = 0
         player_updates["status_effects"] = list()
+        player_updates["context"] = "home"
+
+        # Reset target
         target_updates["hit_points"] = target.max_hit_points
         target_updates["ex"] = 0
         target_updates["status_effects"] = list()
