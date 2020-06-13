@@ -13,7 +13,7 @@ try:
 except ImportError:
     from ..player_data import Player
     from ..database_ops import get_player
-    from ..action_sets.common_actions import create_update_fields
+    from .common_actions import create_update_fields
 
 
 lambda_client = boto3.client("lambda", region_name="us-east-1")
@@ -76,6 +76,7 @@ def play_text_adventure(player: Player, table: dynamodb.Table) -> ActionResponse
 
         updated_player.context = "text_adventure"
         updated_player.target = game_name
+        updated_player.history = []
 
         player_updates = create_update_fields(player, updated_player)
 

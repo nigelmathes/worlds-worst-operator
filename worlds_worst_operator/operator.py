@@ -5,8 +5,8 @@ except ImportError:
 
 import json
 import os
-from pathlib import Path
 
+from copy import deepcopy
 from dataclasses import asdict
 from typing import Dict, Any, Callable, Tuple
 
@@ -19,6 +19,7 @@ try:
     from action_sets.common_actions import COMMON_ACTIONS_MAP, unknown_action
     from action_sets.combat_actions import COMBAT_ACTIONS_MAP
     from action_sets.home_actions import HOME_ACTIONS_MAP
+    from action_sets.text_adventure_actions import TEXT_ADVENTURE_ACTIONS_MAP
 except ImportError:
     from .database_ops import create_player, update_player, verify_player
     from .player_data import Player
@@ -86,13 +87,16 @@ def route_tasks_and_response(event: LambdaDict, context: LambdaDict) -> LambdaDi
     action_to_do, function_to_run = route_action(action=action, actions_map=actions_map)
 
     # Give the player the input action and its enhanced flag
+    player.history.append(action)
     player.action = action_to_do
     player.enhanced = enhanced
+    print(f"route_tasks_and_response() history is {player.history}")
 
     # Perform the action
     player, target, player_updates, target_updates, message = function_to_run(
         player=player, table=player_table
     )
+    print(f"Making updates: {player_updates}")
 
     # Update player and target information if it needs updating
     if player_updates:
@@ -124,7 +128,7 @@ def build_actions_map(context: str) -> Dict:
 
     :return: Full actions dictionary to traverse to determine function to run
     """
-    combined_actions_map = COMMON_ACTIONS_MAP
+    combined_actions_map = deepcopy(COMMON_ACTIONS_MAP)
 
     if context == "home":
         combined_actions_map.update(HOME_ACTIONS_MAP)
@@ -134,9 +138,7 @@ def build_actions_map(context: str) -> Dict:
         # Remove the common actions so they don't clash with the
         # commands in the text adventure, leaving only default.
         # This is now a pass-through to the text adventure game engine
-        for key in combined_actions_map:
-            del combined_actions_map[key]
-        combined_actions_map.update(TEXT_ADVENTURE_ACTIONS_MAP)
+        combined_actions_map = TEXT_ADVENTURE_ACTIONS_MAP
 
     return combined_actions_map
 
@@ -158,8 +160,4 @@ def route_action(action: str, actions_map: dict) -> Tuple[str, Callable]:
         possible_actions = actions_map.keys()
         matched_action, confidence = process.extractOne(action, possible_actions)
 
-        # If the fuzzy match is really uncertain, ask player to clarify
-        if confidence < 60:
-            return "unknown action", unknown_action
-        else:
-            return matched_action, actions_map[matched_action]
+        return matched_action, actions_map[matched_action]

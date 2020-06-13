@@ -18,7 +18,7 @@ dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 ActionResponse = Tuple[Player, Player, Dict, Dict, List]
 
 
-def unknown_action(player: Player, target: Player) -> ActionResponse:
+def unknown_action(player: Player, table: dynamodb.Table) -> ActionResponse:
     """
     Do nothing because the action could not be resolved.
     In the message list, returns a message saying the action was bad.
@@ -26,7 +26,7 @@ def unknown_action(player: Player, target: Player) -> ActionResponse:
     :return: Original inputs matching updated inputs, and a message
     """
     message = ["Action could not be resolved, type better next time"]
-    return player, target, {}, {}, message
+    return player, player, {}, {}, message
 
 
 def change_class(player: Player, table: dynamodb.Table) -> ActionResponse:

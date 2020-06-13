@@ -10,12 +10,12 @@ try:
     from database_ops import get_player
     from player_data import Player
     from arns import COMBAT_ARN
-    from common_actions import create_update_fields
+    from action_sets.common_actions import create_update_fields
 except ImportError:
     from ..database_ops import get_player
     from ..player_data import Player
     from ..arns import COMBAT_ARN
-    from ..action_sets.common_actions import create_update_fields
+    from .common_actions import create_update_fields
 
 
 lambda_client = boto3.client("lambda", region_name="us-east-1")
@@ -29,6 +29,7 @@ def do_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
 
     :param player: Dataclass holding player data
     :param table: DynamoDB table object
+
     :return: Updated Player dataclass and dict of fields to update, and a message
     """
     # Get target from the database
@@ -80,6 +81,7 @@ def do_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
         player_updates["ex"] = 0
         player_updates["status_effects"] = list()
         player_updates["context"] = "home"
+        player_updates["target"] = ""
 
         # Reset target
         target_updates["hit_points"] = target.max_hit_points
@@ -92,6 +94,7 @@ def do_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
         player_updates["ex"] = 0
         player_updates["status_effects"] = list()
         player_updates["context"] = "home"
+        player_updates["target"] = ""
 
         # Reset target
         target_updates["hit_points"] = target.max_hit_points
@@ -103,10 +106,35 @@ def do_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
     return updated_player, updated_target, player_updates, target_updates, message
 
 
+def run_away(player: Player, table: dynamodb.Table) -> ActionResponse:
+    """
+    Runs away from combat.
+    Switches player.context back to "home".
+    Preserves target.
+
+    :param player: Dataclass holding player data
+    :param table: DynamoDB table object
+
+    :return: Updated Player dataclass and dict of fields to update, and a message
+    """
+    updated_player = Player(**asdict(player))
+    updated_player.context = "home"
+
+    player_updates = create_update_fields(player, updated_player)
+
+    message = ["You ran away!"]
+
+    return updated_player, player, player_updates, {}, message
+
+
 COMBAT_ACTIONS_MAP = {
     "attack": do_combat,
     "area": do_combat,
     "block": do_combat,
     "disrupt": do_combat,
     "dodge": do_combat,
+    "run": run_away,
+    "run away": run_away,
+    "flee": run_away,
+    "escape": run_away
 }

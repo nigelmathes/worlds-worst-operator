@@ -3,7 +3,7 @@ service: worlds-worst-operator
 provider:
   name: aws
   region: us-east-1
-  runtime: python3.7
+  runtime: python3.8
   environment:
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
   iamRoleStatements:
