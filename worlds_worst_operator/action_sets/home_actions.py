@@ -15,7 +15,6 @@ except ImportError:
     from ..database_ops import get_player
     from .common_actions import create_update_fields
 
-
 lambda_client = boto3.client("lambda", region_name="us-east-1")
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 ActionResponse = Tuple[Player, Player, Dict, Dict, List]
@@ -45,8 +44,10 @@ def which_game(player: Player, table: dynamodb.Table) -> ActionResponse:
     :return: Updated Player dataclass and dict of fields to update, and a message
     """
     message = [
-        f"Which game would you like to play? You can select from this list by saying, "
-        f"for example: zork2\n {_get_games_list()}"
+        f"Which game would you like to play?",
+        "You can select from this list by saying, for example: zork2",
+        "Select from any of the following games (no need to type the quotes):",
+        f"{_get_games_list()}"
     ]
 
     return player, player, {}, {}, message
@@ -134,6 +135,20 @@ def start_combat(player: Player, table: dynamodb.Table) -> ActionResponse:
     return player, target, player_updates, target_updates, message
 
 
+def describe_home(player: Player, table: dynamodb.Table) -> ActionResponse:
+    """
+    Describe the interior of a players' home
+    """
+    message = [
+        "You are in your home, a small room apart from the rest of the world.",
+        "There is a bed, a dresser, and a small hologram which "
+        "displays the words, 'Say Play a Game to Begin!'",
+        "There is also a target dummy in one corner."
+    ]
+
+    return player, player, {}, {}, message
+
+
 HOME_ACTIONS_MAP = {
     "play a game": which_game,
     "play text adventure": which_game,
@@ -200,7 +215,9 @@ HOME_ACTIONS_MAP = {
     "disrupt": start_combat,
     "area": start_combat,
     "fight": start_combat,
-    "combat": start_combat
+    "combat": start_combat,
+    "look": describe_home,
+    "look around": describe_home
 }
 
 GAMES_LIST = [
