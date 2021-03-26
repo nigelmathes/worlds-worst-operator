@@ -154,7 +154,7 @@ def quit_message(player: Player, table: dynamodb.Table) -> ActionResponse:
     Tell the player they can quit by logging out
     """
     message = [
-        "To quit, press the logout button above! If this was a mistake,"
+        "To quit, press the logout button above! If this was a mistake, "
         "try looking around or going outside."
     ]
 
