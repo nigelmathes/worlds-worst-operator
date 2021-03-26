@@ -149,6 +149,18 @@ def describe_home(player: Player, table: dynamodb.Table) -> ActionResponse:
     return player, player, {}, {}, message
 
 
+def quit_message(player: Player, table: dynamodb.Table) -> ActionResponse:
+    """
+    Tell the player they can quit by logging out
+    """
+    message = [
+        "To quit, press the logout button above! If this was a mistake,"
+        "try looking around or going outside."
+    ]
+
+    return player, player, {}, {}, message
+
+
 HOME_ACTIONS_MAP = {
     "play a game": which_game,
     "play text adventure": which_game,
@@ -217,7 +229,9 @@ HOME_ACTIONS_MAP = {
     "fight": start_combat,
     "combat": start_combat,
     "look": describe_home,
-    "look around": describe_home
+    "look around": describe_home,
+    "explore": describe_home,
+    "quit": quit_message
 }
 
 GAMES_LIST = [

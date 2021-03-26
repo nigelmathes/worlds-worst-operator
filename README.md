@@ -12,7 +12,7 @@ npm install -g serverless
 serverless config credentials --provider aws --key KEY --secret
  SECRET
 
-sls plugin install -n serverless-python-requirements
+serverless plugin install -n serverless-python-requirements
 
 serverless deploy -v
 

@@ -136,5 +136,6 @@ COMBAT_ACTIONS_MAP = {
     "run": run_away,
     "run away": run_away,
     "flee": run_away,
-    "escape": run_away
+    "escape": run_away,
+    "quit": run_away
 }
