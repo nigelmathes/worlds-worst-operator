@@ -162,6 +162,7 @@ def quit_message(player: Player, table: dynamodb.Table) -> ActionResponse:
 
 
 HOME_ACTIONS_MAP = {
+    "play": which_game,
     "play a game": which_game,
     "play text adventure": which_game,
     "905": play_text_adventure,
